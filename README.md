@@ -1,6 +1,7 @@
-# Civicomfy - Civitai Model Downloader for ComfyUI
+# Enhanced Civicomfy - Civitai Model Browser & Downloader for ComfyUI
 
-Civicomfy seamlessly integrates Civitai's vast model repository directly into ComfyUI, allowing you to search, download, and organize AI models without leaving your workflow.
+This is an enhanced version of MoonGoblinDev's original Civicomfy custom node. 
+Civicomfy seamlessly integrates Civitai's vast model repository directly into ComfyUI, allowing you to search, download, and organize AI models without leaving your workflow. 
 
 ## Features
 
@@ -8,23 +9,26 @@ Civicomfy seamlessly integrates Civitai's vast model repository directly into Co
 - **One-Click Downloads**: Download models with associated metadata and thumbnails
 - **Automatic Organization**: Models are automatically saved to their appropriate directories
 - **Clean UI**: Clean, intuitive interface that complements ComfyUI's aesthetic
+- **Grid View**: Offers a clean and adjustable grid view allowing to view the models by thumbnails
+- **Tag Filters**: A custom tagging system that allows for filtering of model results by persistent custom tags
+- **More Results**: Allows for you to select between 20, 50 and 100 results displayed
+- **Multi Connections**: Multiple connections per download; Set a higher default & everything stays auto validated.
+- **Bulk Download**: Allows you to select multiple models to bulk download or bulk tag
 
 ## Installation
 
 Git clone
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/MoonGoblinDev/Civicomfy.git
+git clone https://github.com/BenjaMITM/EnhancedCivicomfy.git
 ```
 
 Comfy-CLI
 ```bash
-comfy node registry-install civicomfy
+comfy node registry-install enhanced-civicomfy
 ```
 
-ComfyUI Manager
 
-<img width="813" alt="Screenshot 2025-04-08 at 11 42 46" src="https://github.com/user-attachments/assets/5d4f5261-88f6-4aa0-9c66-d1811bb49e09" />
 
 ## Usage
 
@@ -39,10 +43,11 @@ ComfyUI Manager
 - Enter your Civitai API Token in the setting
 
 ## Screenshots
-<img width="911" alt="Screenshot 2025-04-08 at 11 24 40" src="https://github.com/user-attachments/assets/b9be0c32-729d-490e-be61-2dc072cd9b15" />
-<img width="911" alt="Screenshot 2025-04-08 at 11 23 17" src="https://github.com/user-attachments/assets/cb747c22-afd0-4baf-a9a2-39c70fb11e46" />
-<img width="911" alt="Screenshot 2025-04-08 at 11 25 15" src="https://github.com/user-attachments/assets/02b6d841-a0fa-484c-91a4-4095a7554c3f" />
-<img width="911" alt="Screenshot 2025-04-08 at 11 25 24" src="https://github.com/user-attachments/assets/20fcfcb5-3345-4a72-89fe-ee9c50626ebc" />
+<img width="911" alt="Screenshot 2025-10-02 at 5 07 40" src="./assets/Screenshot 2025-10-02 at 5.07.40 PM.png" />
+<img width="911" alt="Screenshot 2025-10-02 at 5 08 20" src="./assets/Screenshot 2025-10-02 at 5.08.20 PM.png" />
+<img width="911" alt="Screenshot 2025-10-02 at 5 08 31" src="./assets/Screenshot 2025-10-02 at 5.08.31 PM.png" />
+<img width="911" alt="Screenshot 2025-10-02 at 5 09 08" src="./assets/Screenshot 2025-10-02 at 5.09.08 PM.png" />
+<img width="911" alt="Screenshot 2025-10-02 at 5 09 19" src="./assets/Screenshot 2025-10-02 at 5.09.19 PM.png" />
 
 
 
