@@ -89,7 +89,78 @@ export function modalTemplate(settings = {}) {
             </div>
             <button type="submit" id="civitai-search-submit" class="civitai-button primary">Search</button>
           </form>
-          <div id="civitai-search-results" class="civitai-search-results"></div>
+          <div class="civitai-layout-controls">
+            <label>Layout:</label>
+            <div class="civitai-layout-toggle">
+              <button type="button" class="civitai-layout-button" data-layout="list">
+                <i class="fas fa-list"></i> List
+              </button>
+              <button type="button" class="civitai-layout-button active" data-layout="grid">
+                <i class="fas fa-th"></i> Grid
+              </button>
+            </div>
+            <div class="civitai-grid-size-toggle" aria-label="Grid density controls">
+              <button type="button" class="civitai-grid-size-button active" data-grid-size="large" title="Larger cards">
+                Large
+              </button>
+              <button type="button" class="civitai-grid-size-button" data-grid-size="compact" title="Compact cards (4 per row)">
+                Compact (4)
+              </button>
+            </div>
+            <select id="civitai-search-limit" class="civitai-select" style="min-width: auto; width: auto; padding: 5px 8px; font-size: 0.85em;">
+              <option value="20">20 per page</option>
+              <option value="50" selected>50 per page</option>
+              <option value="100">100 per page</option>
+            </select>
+          </div>
+          <div id="civitai-bulk-actions" class="civitai-bulk-actions" style="display:none;">
+            <div class="civitai-bulk-actions-primary">
+              <button type="button" id="civitai-bulk-download" class="civitai-button primary small" disabled>
+                <i class="fas fa-download"></i> Download Selected
+              </button>
+              <button type="button" id="civitai-select-all" class="civitai-button small">
+                Select Visible
+              </button>
+              <span id="civitai-selected-count" class="civitai-selected-count">0 selected</span>
+            </div>
+            <div id="civitai-bulk-tagger" class="civitai-bulk-tagger">
+              <div class="civitai-bulk-tag-row">
+                <label for="civitai-bulk-tag-select">Apply existing tag</label>
+                <div class="civitai-bulk-tag-controls">
+                  <select id="civitai-bulk-tag-select" class="civitai-select">
+                    <option value="">Choose existing tag…</option>
+                  </select>
+                  <button type="button" id="civitai-bulk-apply-tag" class="civitai-button small" disabled>Apply</button>
+                </div>
+              </div>
+              <div class="civitai-bulk-tag-row">
+                <label for="civitai-bulk-tag-input">Add new tag</label>
+                <div class="civitai-bulk-tag-controls">
+                  <input type="text" id="civitai-bulk-tag-input" class="civitai-input" placeholder="Create and apply new tag">
+                  <button type="button" id="civitai-bulk-create-tag" class="civitai-button small" disabled>Add &amp; Apply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="civitai-tag-filters" class="civitai-tag-filters" style="display:none;">
+            <div class="civitai-tag-filters-header">
+              <span class="civitai-tag-filters-label">Filter by tags</span>
+              <div class="civitai-tag-filter-logic">
+                <label>
+                  <input type="radio" name="civitai-tag-logic" value="and" checked>
+                  AND
+                </label>
+                <label>
+                  <input type="radio" name="civitai-tag-logic" value="or">
+                  OR
+                </label>
+              </div>
+              <button type="button" id="civitai-clear-tag-filters" class="civitai-button small" disabled>Clear</button>
+            </div>
+            <div id="civitai-tag-filter-list" class="civitai-tag-filter-list"></div>
+            <div id="civitai-tag-filter-status" class="civitai-tag-filter-status"></div>
+          </div>
+          <div id="civitai-search-results" class="civitai-search-results grid-layout grid-large"></div>
           <div id="civitai-search-pagination" style="text-align: center; margin-top: 20px;"></div>
         </div>
         <div id="civitai-tab-status" class="civitai-downloader-tab-content">

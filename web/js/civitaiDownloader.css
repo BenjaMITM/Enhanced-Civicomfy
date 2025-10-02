@@ -351,9 +351,98 @@
     align-self: flex-end; /* Align button with bottom of inputs */
 }
 
+/* Layout Toggle Controls */
+.civitai-layout-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: var(--comfy-menu-bg);
+    border-radius: 4px;
+    border: 1px solid var(--border-color, #444);
+}
+
+.civitai-layout-controls label {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--comfy-text-color);
+}
+
+.civitai-layout-toggle {
+    display: flex;
+    border: 1px solid var(--border-color, #555);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.civitai-layout-toggle button {
+    background: var(--comfy-input-bg);
+    border: none;
+    padding: 5px 12px;
+    color: var(--comfy-text-color);
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: background-color 0.2s ease;
+}
+
+.civitai-layout-toggle button:hover {
+    background-color: var(--comfy-input-bg-hover);
+}
+
+.civitai-layout-toggle button.active {
+    background-color: var(--accent-color, #5c8aff);
+    color: white;
+}
+
+.civitai-layout-toggle button i {
+    margin-right: 5px;
+}
+
+.civitai-grid-size-toggle {
+    display: flex;
+    border: 1px solid var(--border-color, #555);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.civitai-grid-size-button {
+    background: var(--comfy-input-bg);
+    border: none;
+    padding: 5px 12px;
+    color: var(--comfy-text-color);
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s ease;
+}
+
+.civitai-grid-size-button:hover {
+    background-color: var(--comfy-input-bg-hover);
+}
+
+.civitai-grid-size-button.active {
+    background-color: var(--accent-color, #5c8aff);
+    color: white;
+}
+
 .civitai-search-results {
     margin-top: 20px;
 }
+
+/* Search Results Layout Options */
+.civitai-search-results.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+    align-content: start;
+}
+
+.civitai-search-results.grid-layout.grid-compact {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
 .civitai-search-item {
     display: flex;
     gap: 15px;
@@ -364,20 +453,560 @@
     background-color: var(--comfy-input-bg);
     border: 1px solid var(--border-color, #555);
     transition: background-color 0.2s ease;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 340px 380px;
+}
+/* Grid layout adjustments for search items */
+.civitai-search-results.grid-layout .civitai-search-item {
+    flex-direction: column;
+    margin-bottom: 0;
+    width: 100%;
+    min-width: 0;
+    background-color: var(--comfy-input-bg);
+    border: 1px solid var(--border-color, #555);
+    padding: 12px;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    gap: 10px;
+    align-items: stretch;
+    contain-intrinsic-size: 380px 320px;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-search-item {
+    padding: 10px;
+    gap: 8px;
+}
+
+.civitai-search-results.grid-layout .civitai-search-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Remove previous override that shrank thumbnails in grid */
+.civitai-search-results.grid-layout .civitai-thumbnail-container {
+    flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    height: auto;
+    max-width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 6px;
+}
+
+.civitai-search-results.grid-layout .civitai-search-thumbnail {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+}
+
+.civitai-search-results.grid-layout .civitai-thumbnail-container img.civitai-search-thumbnail,
+.civitai-search-results.grid-layout .civitai-thumbnail-container video.civitai-search-thumbnail {
+    object-fit: contain;
+    background-color: rgba(0, 0, 0, 0.35);
+}
+
+.civitai-search-results.grid-layout .civitai-search-info {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.civitai-search-results.grid-layout .civitai-search-info h4 {
+    font-size: 0.9em;
+    margin: 0;
+    line-height: 1.3;
+    max-height: 3.9em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-search-info h4 {
+    font-size: 0.8em;
+    -webkit-line-clamp: 2;
+    max-height: 2.6em;
+}
+
+.civitai-search-results.grid-layout .civitai-search-meta-info {
+    display: none; /* Hide meta info to save space */
+}
+
+.civitai-search-results.grid-layout .civitai-search-stats {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 2px 0;
+    font-size: 0.7em;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-search-stats {
+    font-size: 0.6em;
+    gap: 4px;
+}
+
+.civitai-search-results.grid-layout .civitai-search-stats span {
+    font-size: 0.7em;
+    margin-right: 0;
+    white-space: nowrap;
+}
+
+.civitai-search-results.grid-layout .civitai-search-stats i {
+    font-size: 0.9em;
+}
+
+.civitai-search-results.grid-layout .civitai-search-tags {
+    display: none; /* Hide tags to save space */
+}
+
+.civitai-search-results.grid-layout .civitai-search-actions {
+    margin: 6px 0 0 0;
+    align-items: stretch;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-search-actions {
+    gap: 4px;
+}
+
+.civitai-search-results.grid-layout .version-buttons-container {
+    align-items: stretch;
+    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.civitai-search-results.grid-layout.grid-compact .version-buttons-container {
+    gap: 4px;
+}
+
+
+.civitai-search-results.grid-layout .civitai-button.small {
+    padding: 6px 10px;
+    font-size: 0.8em;
+    border-radius: 4px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: normal;
+    line-height: 1.2;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-button.small {
+    padding: 5px 8px;
+    font-size: 0.75em;
+}
+
+.civitai-search-results.grid-layout .base-model-badge {
+    padding: 2px 4px;
+    font-size: 0.7em;
+    margin-right: 4px;
+    border-radius: 4px;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.civitai-search-results.grid-layout.grid-compact .base-model-badge {
+    font-size: 0.65em;
+}
+
+.civitai-search-results.grid-layout .civitai-type-badge {
+    padding: 2px 4px;
+    font-size: 0.6em;
+    bottom: 2px;
+    left: 2px;
+    border-radius: 3px;
+}
+
+.civitai-search-results.grid-layout .all-versions-container {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.civitai-search-results.grid-layout .show-all-versions-button {
+    font-size: 0.75em;
+    padding: 6px 10px;
+}
+
+/* Custom tag manager */
+.civitai-user-tag-manager {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.civitai-user-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 22px;
+}
+
+.civitai-user-tag-quickapply {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.civitai-user-tag-quickapply-label {
+    font-size: 0.72em;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--desc-text, #9fa3ad);
+    letter-spacing: 0.04em;
+}
+
+.civitai-user-tag-quickapply-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.civitai-tag-quick-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(92, 138, 255, 0.35);
+    background-color: rgba(92, 138, 255, 0.15);
+    font-size: 0.75em;
+    color: var(--comfy-text-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.civitai-tag-quick-option:hover {
+    background-color: rgba(92, 138, 255, 0.25);
+}
+
+.civitai-tag-quick-option input[type="checkbox"] {
+    accent-color: var(--accent-color, #5c8aff);
+    transform: scale(0.9);
+}
+
+#civitai-bulk-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.civitai-bulk-actions-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.civitai-bulk-tagger {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color, #444);
+}
+
+.civitai-bulk-tag-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.civitai-bulk-tag-row label {
+    font-size: 0.72em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--desc-text, #9fa3ad);
+}
+
+.civitai-bulk-tag-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.civitai-bulk-tag-controls .civitai-select {
+    width: auto;
+    min-width: 200px;
+}
+
+.civitai-bulk-tag-controls .civitai-input {
+    flex: 1 1 240px;
+    min-width: 160px;
+}
+
+.civitai-bulk-tag-controls .civitai-button.small {
+    padding: 4px 10px;
+    font-size: 0.75em;
+}
+
+.civitai-user-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(92, 138, 255, 0.18);
+    border: 1px solid rgba(92, 138, 255, 0.35);
+    color: var(--comfy-text-color);
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.75em;
+    line-height: 1.2;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-user-tag {
+    padding: 2px 6px;
+    font-size: 0.7em;
+}
+
+.civitai-user-tag-label {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-user-tag-label {
+    max-width: 100px;
+    font-size: 0.9em;
+}
+
+.civitai-remove-tag-button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1em;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.civitai-remove-tag-button:hover {
+    color: #ff7b7b;
+}
+
+.civitai-user-no-tags {
+    color: var(--desc-text, #888);
+    font-size: 0.75em;
+}
+
+.civitai-user-tag-input {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
+}
+
+.civitai-user-tag-input .civitai-user-tag-input-field {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    font-size: 0.85em;
+    padding: 8px 10px;
+    background-color: var(--comfy-input-bg);
+    color: var(--comfy-text-color);
+    border: 1px solid var(--border-color, #555);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.civitai-search-results.grid-layout.grid-compact .civitai-user-tag-input .civitai-user-tag-input-field {
+    font-size: 0.8em;
+    padding: 7px 8px;
+}
+
+.civitai-user-tag-input .civitai-add-tag-button {
+    align-self: flex-start;
+    padding: 4px 10px;
+    font-size: 0.7em;
+}
+
+.civitai-user-tag-input .civitai-user-tag-input-field:focus {
+    outline: none;
+    border-color: var(--accent-color, #5c8aff);
+    box-shadow: 0 0 0 2px rgba(92, 138, 255, 0.3);
+    background-color: rgba(92, 138, 255, 0.12);
+}
+
+.civitai-user-tag-input .civitai-user-tag-input-field::placeholder {
+    color: var(--desc-text, #aaa);
+    opacity: 0.85;
+}
+
+.civitai-tag-filters {
+    margin: 15px 0;
+    padding: 12px;
+    border: 1px solid var(--border-color, #444);
+    border-radius: 6px;
+    background-color: var(--comfy-input-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.civitai-tag-filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.civitai-tag-filters-label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--comfy-text-color);
+}
+
+.civitai-tag-filter-logic {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--comfy-input-bg);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 0.75em;
+}
+
+.civitai-tag-filter-logic label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.civitai-tag-filter-logic input[type="radio"] {
+    accent-color: var(--accent-color, #5c8aff);
+    transform: scale(0.9);
+    margin: 0;
+}
+
+.civitai-tag-filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.civitai-tag-filter-chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(92, 138, 255, 0.4);
+    background-color: rgba(92, 138, 255, 0.15);
+    color: var(--comfy-text-color);
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.civitai-tag-filter-chip:hover {
+    background-color: rgba(92, 138, 255, 0.25);
+}
+
+.civitai-tag-filter-chip.active {
+    background-color: var(--accent-color, #5c8aff);
+    border-color: var(--accent-color, #5c8aff);
+    color: #fff;
+}
+
+.civitai-tag-filter-status {
+    font-size: 0.8em;
+    color: var(--desc-text, #aaa);
+}
+
+.civitai-search-item.tag-filter-hidden {
+    display: none !important;
+}
+
+/* Pagination controls */
+#civitai-search-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+#civitai-search-pagination .civitai-page-button {
+    min-width: 40px;
+    padding: 6px 10px;
+    font-size: 0.85em;
+    border-radius: 4px;
+}
+
+#civitai-search-pagination .civitai-page-button.primary.active {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+#civitai-search-pagination span {
+    color: var(--desc-text, #bbb);
+    font-size: 0.85em;
+    padding: 0 4px;
+}
+
+#civitai-search-pagination .civitai-pagination-info {
+    flex-basis: 100%;
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--desc-text, #bbb);
+    margin-top: 4px;
+}
+
+.civitai-search-results.grid-layout .civitai-search-actions a.civitai-button {
+    font-size: 0.8em;
+    margin-bottom: 0;
+}
+
+.civitai-search-results.grid-layout .civitai-search-actions .version-buttons-container .civitai-button {
+    font-size: 0.8em;
+    margin-bottom: 0;
 }
 
 .civitai-thumbnail-container {
-    position: relative; /* Required for absolute positioning of the child badge */
-    display: block; 
-    line-height: 0; 
-    width: 120px;
-    height: 170px;
-    flex-shrink: 0; 
+    position: relative; /* Required for absolute positioning of children */
+    display: block;
+    line-height: 0;
+    width: 200px;
+    height: 280px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 .civitai-search-thumbnail {
-    width: 120px; /* Slightly larger for search */
-    height: 170px;
+    width: 200px;
+    height: 280px;
     object-fit: cover;
     border-radius: 4px;
     background-color: #333;
@@ -385,7 +1014,7 @@
 }
 
 .civitai-search-meta-info {
-    font-size: 0.85em;
+    font-size: 0.95em;
     color: #aaa; 
     margin-bottom: 5px;
     display: flex;
@@ -422,10 +1051,13 @@
     flex-direction: column;
     gap: 5px;
     overflow: hidden;
+    width: 100%;
+    margin-top: 8px; /* Space below thumbnail */
 }
 .civitai-search-info h4 {
     margin: 0;
-    font-size: 1.1em;
+    font-size: 1.35em;
+    color: var(--comfy-text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -679,22 +1311,45 @@
 .civitai-thumbnail-container video.civitai-search-thumbnail,
 .civitai-thumbnail-container img.civitai-download-thumbnail,
 .civitai-thumbnail-container video.civitai-download-thumbnail {
-    display: block; /* Prevent extra space below */
-    width: 100%;    /* Fill the container width */
-    height: 100%;   /* Fill the container height */
-    object-fit: cover; /* Scale while maintaining aspect ratio, cropping if needed */
-    background-color: #333; /* Background for loading/error states */
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #333;
 }
 
 /* You might already have rules for the container itself, ensure they define a size */
-.civitai-thumbnail-container {
-    width: 100px; /* Example size */
-    height: 140px; /* Example size */
-    overflow: hidden; /* Hide parts of the video/image outside the cover area */
-    position: relative; /* For positioning badges etc. */
-    flex-shrink: 0; /* Prevent shrinking in flex layouts */
-    border-radius: 4px; /* Match styling */
+/* Remove conflicting smaller sizing; use 120x170 defined above */
+
+/* Checkbox overlay in top-left, show on hover */
+.civitai-select-checkbox {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 4;
+    transform: scale(1.1);
+    display: none;
 }
+.civitai-search-item:hover .civitai-select-checkbox,
+.civitai-select-checkbox:checked {
+    display: block;
+}
+
+/* Clickable name below thumbnail */
+.civitai-search-name {
+    color: var(--comfy-text-color);
+    text-decoration: none;
+    cursor: pointer;
+    display: block;
+    font-weight: 600;
+}
+.civitai-search-name:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Make entire thumbnail feel clickable when opening preview */
+.civitai-open-preview { cursor: pointer; }
 
 /* Blur/Hide for R-rated thumbnails */
 .civitai-thumbnail-container.blurred img.civitai-search-thumbnail,

@@ -3,10 +3,24 @@
 
 const PLACEHOLDER_IMAGE_URL = `/extensions/Civicomfy/images/placeholder.jpeg`;
 
-export function renderSearchResults(ui, items) {
+function escapeHtml(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function renderSearchResults(ui, items, options = {}) {
+  const { append = false } = options;
   ui.feedback?.ensureFontAwesome();
 
-  if (!items || items.length === 0) {
+  const container = ui.searchResultsContainer;
+  if (!container) return;
+
+  if ((!items || items.length === 0) && !append) {
     const queryUsed = ui.searchQueryInput && ui.searchQueryInput.value.trim();
     const typeFilterUsed = ui.searchTypeSelect && ui.searchTypeSelect.value !== 'any';
     const baseModelFilterUsed = ui.searchBaseModelSelect && ui.searchBaseModelSelect.value !== 'any';
@@ -20,15 +34,19 @@ export function renderSearchResults(ui, items) {
   const placeholder = PLACEHOLDER_IMAGE_URL;
   const onErrorScript = `this.onerror=null; this.src='${placeholder}'; this.style.backgroundColor='#444';`;
   const fragment = document.createDocumentFragment();
+  if (!append) {
+    container.innerHTML = '';
+  }
+  const allCustomTags = ui.getAllCustomTags();
 
   items.forEach(hit => {
     const modelId = hit.id;
     if (!modelId) return;
+    const modelIdStr = String(modelId);
 
     const creator = hit.user?.username || 'Unknown Creator';
     const modelName = hit.name || 'Untitled Model';
     const modelTypeApi = hit.type || 'other';
-    console.log('Model type for badge:', modelTypeApi);
     const stats = hit.metrics || {};
     const tags = hit.tags?.map(t => t.name) || [];
 
@@ -60,7 +78,7 @@ export function renderSearchResults(ui, items) {
 
     const listItem = document.createElement('div');
     listItem.className = 'civitai-search-item';
-    listItem.dataset.modelId = modelId;
+    listItem.dataset.modelId = modelIdStr;
 
     const MAX_VISIBLE_VERSIONS = 3;
     let visibleVersions = [];
@@ -125,7 +143,7 @@ export function renderSearchResults(ui, items) {
     const imageAlt = `${modelName} thumbnail`;
     if (thumbnailUrl && typeof thumbnailUrl === 'string' && thumbnailType === 'video') {
       thumbnailHtml = `
-        <video class="civitai-search-thumbnail" src="${thumbnailUrl}" autoplay loop muted playsinline
+        <video class="civitai-search-thumbnail" src="${thumbnailUrl}" autoplay loop muted playsinline preload="metadata"
                title="${videoTitle}"
                onerror="console.error('Failed to load video preview:', this.src)">
           Your browser does not support the video tag.
@@ -134,21 +152,25 @@ export function renderSearchResults(ui, items) {
     } else {
       const effective = thumbnailUrl || placeholder;
       thumbnailHtml = `
-        <img src="${effective}" alt="${imageAlt}" class="civitai-search-thumbnail" loading="lazy" onerror="${onErrorScript}">
+        <img src="${effective}" alt="${imageAlt}" class="civitai-search-thumbnail" loading="lazy" decoding="async" fetchpriority="low" onerror="${onErrorScript}">
       `;
     }
 
     const overlayHtml = shouldBlur ? `<div class="civitai-nsfw-overlay" title="R-rated: click to reveal">R</div>` : '';
-    const containerClasses = `civitai-thumbnail-container${shouldBlur ? ' blurred' : ''}`;
+    const containerClasses = `civitai-thumbnail-container civitai-open-preview${shouldBlur ? ' blurred' : ''}`;
 
+    const checkedAttr = ui.isSelected(modelId) ? 'checked' : '';
+    const userTags = ui.getCustomTags(modelId);
+    const tagManagerHtml = ui.buildUserTagManagerInnerHTML(modelIdStr, userTags, allCustomTags);
     listItem.innerHTML = `
-      <div class="${containerClasses}" data-nsfw-level="${nsfwLevel ?? ''}">
+      <div class="${containerClasses}" data-nsfw-level="${nsfwLevel ?? ''}" data-model-id="${modelIdStr}" data-version-id="${primaryVersionId || ''}">
+        <input type="checkbox" class="civitai-select-checkbox" data-model-id="${modelIdStr}" ${checkedAttr} title="Select model" />
         ${thumbnailHtml}
         ${overlayHtml}
         <div class="civitai-type-badge" data-type="${modelTypeApi.toLowerCase()}">${modelTypeApi}</div>
       </div>
       <div class="civitai-search-info">
-        <h4>${modelName}</h4>
+        <h4><a href="#" class="civitai-search-name" data-model-id="${modelIdStr}" data-version-id="${primaryVersionId || ''}" title="Open model preview">${modelName}</a></h4>
         <div class="civitai-search-meta-info">
           <span title="Creator: ${creator}"><i class="fas fa-user"></i> ${creator}</span>
           <span title="Base Models: ${baseModelsDisplay}"><i class="fas fa-layer-group"></i> ${baseModelsDisplay}</span>
@@ -167,6 +189,9 @@ export function renderSearchResults(ui, items) {
         </div>
         ` : ''}
       </div>
+      <div class="civitai-user-tag-manager" data-model-id="${modelIdStr}">
+        ${tagManagerHtml}
+      </div>
       <div class="civitai-search-actions">
         <a href="https://civitai.com/models/${modelId}${primaryVersionId ? '?modelVersionId='+primaryVersionId : ''}" 
            target="_blank" rel="noopener noreferrer" class="civitai-button small" 
@@ -181,9 +206,10 @@ export function renderSearchResults(ui, items) {
       </div>
     `;
 
+    ui.setCardTagDataset(listItem, userTags);
+
     fragment.appendChild(listItem);
   });
 
-  ui.searchResultsContainer.innerHTML = '';
-  ui.searchResultsContainer.appendChild(fragment);
+  container.appendChild(fragment);
 }
