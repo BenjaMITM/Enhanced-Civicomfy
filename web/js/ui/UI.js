@@ -1144,8 +1144,8 @@ export class CivitaiDownloaderUI {
                 addIfExists('unet');
                 break;
             case 'diffusers': case 'diffusionmodels': case 'diffusion_models': case 'diffusion':
+                // Normalize to the single 'diffusers' candidate to avoid duplicate listing
                 addIfExists('diffusers');
-                addIfExists('diffusion_models');
                 break;
             case 'upscaler': case 'upscalers':
                 addIfExists('upscale_models');

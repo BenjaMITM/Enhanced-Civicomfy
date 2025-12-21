@@ -21,7 +21,7 @@ from ..config import DEFAULT_CHUNK_SIZE, DOWNLOAD_TIMEOUT, HEAD_REQUEST_TIMEOUT
 class ChunkDownloader:
     """Handles downloading files in chunks using multiple connections or fallback."""
     # Constants
-    STATUS_UPDATE_INTERVAL = 0.5
+    STATUS_UPDATE_INTERVAL = 1.0
     HEAD_REQUEST_TIMEOUT = HEAD_REQUEST_TIMEOUT
     DOWNLOAD_TIMEOUT = DOWNLOAD_TIMEOUT
     MIN_SIZE_FOR_MULTI_MB = 100  # Minimum file size for multi-connection download
@@ -292,7 +292,7 @@ class ChunkDownloader:
                     # Copy part data to output file
                     try:
                         with open(part_file, 'rb') as infile:
-                            shutil.copyfileobj(infile, outfile, length=1024*1024*2)  # 2MB buffer
+                            shutil.copyfileobj(infile, outfile, length=8*1024*1024)  # 8MB buffer for faster disk IO
                     except Exception as copy_e:
                         self.error = f"Error copying data from part {part_file.name} during merge: {copy_e}"
                         print(f"[Downloader {self.download_id}] Error: {self.error}")
@@ -551,7 +551,7 @@ class ChunkDownloader:
         while active_threads and not self.is_cancelled:
             joined_threads = []
             for t in active_threads:
-                t.join(timeout=0.2)
+                t.join(timeout=0.5)
                 if not t.is_alive():
                     joined_threads.append(t)
             

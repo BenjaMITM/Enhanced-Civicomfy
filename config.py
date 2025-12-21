@@ -6,8 +6,8 @@ import folder_paths # Use ComfyUI's folder_paths
 
 # --- Configuration ---
 MAX_CONCURRENT_DOWNLOADS = 3
-DEFAULT_CHUNK_SIZE = 1024 * 1024  # 1MB
-DEFAULT_CONNECTIONS = 4
+DEFAULT_CHUNK_SIZE = 4 * 1024 * 1024  # 4MB (increase to reduce per-chunk overhead)
+DEFAULT_CONNECTIONS = 8
 DOWNLOAD_HISTORY_LIMIT = 100
 DOWNLOAD_TIMEOUT = 60 # Timeout for individual download chunks/requests (seconds)
 HEAD_REQUEST_TIMEOUT = 25 # Timeout for initial HEAD request (seconds)
@@ -34,7 +34,7 @@ COMFYUI_ROOT_DIR = folder_paths.base_path
 # The folder_paths_type is used by ComfyUI's folder_paths.get_directory_by_type().
 MODEL_TYPE_DIRS = {
     "checkpoint": ("Checkpoint", "checkpoints"),
-    "diffusionmodels": ("Diffusion Models", "diffusers"),
+    "diffusers": ("Diffusion Models", "diffusers"),
     "unet": ("Unet", "unet"),
     "lora": ("Lora", "loras"),
     "locon": ("LoCon", "loras"),
@@ -67,18 +67,18 @@ CIVITAI_API_TYPE_MAP = {
     "wildcards": "Wildcards",
     "upscaler": "Upscaler", 
     "unet": "UNET",
-    "diffusionmodels": "Checkpoint", # No specific type, map to checkpoint
+    "diffusers": "Checkpoint", # No specific type, map to checkpoint
 }
 
 AVAILABLE_MEILI_BASE_MODELS = [
-    "AuraFlow", "CogVideoX", "Flux.1 D", "Flux.1 S", "Hunyuan 1", "Hunyuan Video",
+    "AuraFlow", "CogVideoX", "Flux.1 D", "Flux.1 S", "Flux2", "Hunyuan 1", "Hunyuan Video",
     "Illustrious", "Kolors", "LTXV", "Lumina", "Mochi", "NoobAI", "ODOR", "Other",
     "PixArt E", "PixArt a", "Playground v2", "Pony", "SD 1.4", "SD 1.5",
     "SD 1.5 Hyper", "SD 1.5 LCM", "SD 2.0", "SD 2.0 768", "SD 2.1", "SD 2.1 768",
     "SD 2.1 Unclip", "SD 3", "SD 3.5", "SD 3.5 Large", "SD 3.5 Large Turbo",
     "SD 3.5 Medium", "SDXL 0.9", "SDXL 1.0", "SDXL 1.0 LCM", "SDXL Distilled",
     "SDXL Hyper", "SDXL Lightning", "SDXL Turbo", "SVD", "SVD XT", "Stable Cascade",
-    "Wan Video"
+    "Wan Video", "Z-Image", "Ovis"
 ]
 
 # --- Filename Suffixes ---
