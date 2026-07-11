@@ -8,7 +8,7 @@ on:
     paths:
       - "pyproject.toml"
 env:
-  PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN {{
+  PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 jobs:
   publish-node:
     name: Publish Custom Node to registry
