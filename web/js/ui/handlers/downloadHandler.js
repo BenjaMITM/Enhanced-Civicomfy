@@ -30,8 +30,8 @@ export async function fetchAndDisplayDownloadPreview(ui) {
         if (result && result.success) {
             ui.renderDownloadPreview(result);
             // Auto-select model type save location based on Civitai model type
-            if (result.model_type) {
-                await ui.autoSelectModelTypeFromCivitai(result.model_type);
+            if (result.recommended_model_type || result.model_type) {
+                await ui.autoSelectModelTypeFromCivitai(result.recommended_model_type || result.model_type);
             }
         } else {
             const message = `Failed to get details: ${result.details || result.error || 'Unknown backend error'}`;

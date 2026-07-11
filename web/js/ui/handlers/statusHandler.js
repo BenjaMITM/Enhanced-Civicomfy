@@ -1,5 +1,18 @@
 import { CivitaiDownloaderAPI } from "../../api/civitai.js";
 
+function buildStatusSignature(statusData) {
+    if (!statusData) return '';
+
+    const summarizeItem = (item) => `${item?.id || ''}:${item?.status || ''}:${item?.progress || 0}:${item?.error || ''}`;
+    return [
+        `q${Array.isArray(statusData.queue) ? statusData.queue.length : 0}`,
+        `a${Array.isArray(statusData.active) ? statusData.active.length : 0}`,
+        `h${Array.isArray(statusData.history) ? statusData.history.length : 0}`,
+        ...(Array.isArray(statusData.active) ? statusData.active.map(summarizeItem) : []),
+        ...(Array.isArray(statusData.queue) ? statusData.queue.map(summarizeItem) : []),
+    ].join('|');
+}
+
 export function startStatusUpdates(ui) {
     if (!ui.statusInterval) {
         console.log("[Civicomfy] Starting status updates (every 3s)...");
@@ -25,8 +38,8 @@ export async function updateStatus(ui) {
             throw new Error("Invalid status data structure received from server.");
         }
 
-        const oldStateString = JSON.stringify(ui.statusData);
-        const newStateString = JSON.stringify(newStatusData);
+        const oldStateString = buildStatusSignature(ui.statusData);
+        const newStateString = buildStatusSignature(newStatusData);
 
         // Cache new state if it differs
         if (oldStateString !== newStateString) {

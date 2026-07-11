@@ -2,10 +2,18 @@ import { setCookie, getCookie } from "../../utils/cookies.js";
 
 const SETTINGS_COOKIE_NAME = 'civitaiDownloaderSettings';
 
+function normalizeModelType(value) {
+    const key = (value || '').toLowerCase();
+    if (key === 'diffusion-models' || key === 'diffusionmodels') {
+        return 'diffusion_models';
+    }
+    return value;
+}
+
 export function getDefaultSettings() {
     return {
         apiKey: '',
-        numConnections: 1,
+        numConnections: 4,
         defaultModelType: 'checkpoint',
         autoOpenStatusTab: true,
         searchResultLimit: 20,
@@ -26,7 +34,7 @@ export function loadSettingsFromCookie(ui) {
     if (cookieValue) {
         try {
             const loadedSettings = JSON.parse(cookieValue);
-            return { ...defaults, ...loadedSettings };
+            return { ...defaults, ...loadedSettings, defaultModelType: normalizeModelType(loadedSettings.defaultModelType || defaults.defaultModelType) };
         } catch (e) {
             console.error("Failed to parse settings cookie:", e);
             return defaults;
@@ -54,7 +62,7 @@ export function applySettings(ui) {
         ui.settingsConnectionsInput.value = Math.max(1, Math.min(16, ui.settings.numConnections || 1));
     }
     if (ui.settingsDefaultTypeSelect) {
-        ui.settingsDefaultTypeSelect.value = ui.settings.defaultModelType || 'checkpoint';
+        ui.settingsDefaultTypeSelect.value = normalizeModelType(ui.settings.defaultModelType || 'checkpoint');
     }
     if (ui.settingsAutoOpenCheckbox) {
         ui.settingsAutoOpenCheckbox.checked = ui.settings.autoOpenStatusTab === true;
@@ -66,11 +74,14 @@ export function applySettings(ui) {
         const val = Number(ui.settings.nsfwBlurMinLevel);
         ui.settingsNsfwThresholdInput.value = Number.isFinite(val) ? val : 4;
     }
+    if (ui.searchLimitSelect) {
+        ui.searchLimitSelect.value = String(ui.settings.searchResultLimit || 20);
+    }
     if (ui.downloadConnectionsInput) {
         ui.downloadConnectionsInput.value = Math.max(1, Math.min(16, ui.settings.numConnections || 1));
     }
     if (ui.downloadModelTypeSelect && Object.keys(ui.modelTypes).length > 0) {
-        ui.downloadModelTypeSelect.value = ui.settings.defaultModelType || 'checkpoint';
+        ui.downloadModelTypeSelect.value = normalizeModelType(ui.settings.defaultModelType || 'checkpoint');
     }
     ui.searchPagination.limit = ui.settings.searchResultLimit || 20;
 }

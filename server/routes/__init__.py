@@ -16,6 +16,7 @@ from . import GetModelDirs
 from . import GetStatus
 from . import OpenPath
 from . import RetryDownload
+from . import TagState
 from . import SearchModels
 
 print("[Civicomfy] All server route modules loaded.")

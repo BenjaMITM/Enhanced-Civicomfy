@@ -7,6 +7,8 @@ export async function handleSearchSubmit(ui) {
     ui.searchPaginationContainer.innerHTML = '';
     ui.ensureFontAwesome();
 
+    const civitaiTagFilters = ui.getCivitaiTagSearchFilters ? ui.getCivitaiTagSearchFilters() : { include: [], exclude: [], logic: 'and' };
+
     const params = {
         query: ui.searchQueryInput.value.trim(),
         model_types: ui.searchTypeSelect.value === 'any' ? [] : [ui.searchTypeSelect.value],
@@ -15,6 +17,9 @@ export async function handleSearchSubmit(ui) {
         limit: parseInt(ui.searchLimitSelect.value) || ui.searchPagination.limit,
         page: ui.searchPagination.currentPage,
         api_key: ui.settings.apiKey,
+        civitai_tag_filters: civitaiTagFilters.include,
+        civitai_exclude_tag_filters: civitaiTagFilters.exclude,
+        civitai_tag_filter_logic: civitaiTagFilters.logic,
     };
 
     ui.lastSearchBaseParams = null;

@@ -29,6 +29,9 @@ export class CivitaiDownloaderUI {
         this.customTags = new Map();
         this.activeTagFilters = new Set();
         this.tagFilterLogic = 'and';
+        this.civitaiTagFilters = new Set();
+        this.civitaiExcludeTagFilters = new Set();
+        this.civitaiTagFilterLogic = 'and';
         this.lastSearchBaseParams = null;
         this.loadedPages = new Set();
         this.loadedModelIds = new Set();
@@ -90,6 +93,12 @@ export class CivitaiDownloaderUI {
         this.searchResultsContainer = this.modal.querySelector('#civitai-search-results');
         this.searchPaginationContainer = this.modal.querySelector('#civitai-search-pagination');
         this.searchLimitSelect = this.modal.querySelector('#civitai-search-limit');
+        this.civitaiTagIncludeInput = this.modal.querySelector('#civitai-civitai-tag-include');
+        this.civitaiTagExcludeInput = this.modal.querySelector('#civitai-civitai-tag-exclude');
+        this.civitaiTagApplyButton = this.modal.querySelector('#civitai-civitai-tag-apply');
+        this.civitaiTagClearButton = this.modal.querySelector('#civitai-civitai-tag-clear');
+        this.civitaiTagLogicRadios = this.modal.querySelectorAll('input[name="civitai-civitai-tag-logic"]');
+        this.civitaiTagStatus = this.modal.querySelector('#civitai-civitai-tag-status');
         // Bulk actions
         this.bulkActionsBar = this.modal.querySelector('#civitai-bulk-actions');
         this.bulkDownloadButton = this.modal.querySelector('#civitai-bulk-download');
@@ -147,6 +156,7 @@ export class CivitaiDownloaderUI {
         console.info("[Civicomfy] Initializing UI components...");
         await this.populateModelTypes();
         await this.populateBaseModels();
+        await this.loadPersistentTagState();
         this.loadAndApplySettings();
     }
 
@@ -235,6 +245,139 @@ export class CivitaiDownloaderUI {
         } catch (error) {
              console.error("[Civicomfy] Failed to get or populate base models:", error);
              this.showToast('Failed to load base models list', 'error');
+        }
+    }
+
+    async loadPersistentTagState() {
+        try {
+            const state = await CivitaiDownloaderAPI.getTagState();
+            if (!state || typeof state !== 'object') return;
+
+            if (state.custom_tags && typeof state.custom_tags === 'object') {
+                const mergedTags = new Map();
+                Object.entries(state.custom_tags).forEach(([modelId, tags]) => {
+                    if (!Array.isArray(tags)) return;
+                    const cleaned = [...new Set(tags.map(tag => typeof tag === 'string' ? tag.trim() : '').filter(Boolean))];
+                    if (cleaned.length > 0) mergedTags.set(String(modelId), cleaned.sort((a, b) => a.localeCompare(b)));
+                });
+                this.customTags = mergedTags;
+                this.saveCustomTags();
+            }
+
+            if (Array.isArray(state.active_tag_filters)) {
+                this.activeTagFilters = new Set(state.active_tag_filters.map(tag => typeof tag === 'string' ? tag.trim() : '').filter(Boolean));
+            }
+
+            if (state.tag_filter_logic === 'and' || state.tag_filter_logic === 'or') {
+                this.tagFilterLogic = state.tag_filter_logic;
+            }
+
+            if (Array.isArray(state.civitai_tag_filters)) {
+                this.civitaiTagFilters = new Set(state.civitai_tag_filters.map(tag => typeof tag === 'string' ? tag.trim() : '').filter(Boolean));
+            }
+
+            if (Array.isArray(state.civitai_exclude_tag_filters)) {
+                this.civitaiExcludeTagFilters = new Set(state.civitai_exclude_tag_filters.map(tag => typeof tag === 'string' ? tag.trim() : '').filter(Boolean));
+            }
+
+            if (state.civitai_tag_filter_logic === 'and' || state.civitai_tag_filter_logic === 'or') {
+                this.civitaiTagFilterLogic = state.civitai_tag_filter_logic;
+            }
+
+            this.updateTagFilterControls();
+            this.syncCivitaiTagFilterControls();
+            this.syncTagLogicRadios();
+        } catch (error) {
+            console.warn('[Civicomfy] Failed to load persistent tag state:', error);
+        }
+    }
+
+    async savePersistentTagState() {
+        try {
+            await CivitaiDownloaderAPI.saveTagState({
+                custom_tags: Object.fromEntries(Array.from(this.customTags.entries())),
+                active_tag_filters: Array.from(this.activeTagFilters),
+                tag_filter_logic: this.tagFilterLogic,
+                civitai_tag_filters: Array.from(this.civitaiTagFilters),
+                civitai_exclude_tag_filters: Array.from(this.civitaiExcludeTagFilters),
+                civitai_tag_filter_logic: this.civitaiTagFilterLogic,
+            });
+        } catch (error) {
+            console.warn('[Civicomfy] Failed to save persistent tag state:', error);
+        }
+    }
+
+    parseTagList(rawValue) {
+        if (typeof rawValue !== 'string') return [];
+        return [...new Set(rawValue.split(/[\n,]+/).map(tag => tag.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    }
+
+    hasCivitaiTagFilters() {
+        return this.civitaiTagFilters.size > 0 || this.civitaiExcludeTagFilters.size > 0;
+    }
+
+    getCivitaiTagSearchFilters() {
+        return {
+            include: Array.from(this.civitaiTagFilters),
+            exclude: Array.from(this.civitaiExcludeTagFilters),
+            logic: this.civitaiTagFilterLogic,
+        };
+    }
+
+    syncCivitaiTagFilterControls() {
+        if (this.civitaiTagIncludeInput) {
+            this.civitaiTagIncludeInput.value = Array.from(this.civitaiTagFilters).join(', ');
+        }
+        if (this.civitaiTagExcludeInput) {
+            this.civitaiTagExcludeInput.value = Array.from(this.civitaiExcludeTagFilters).join(', ');
+        }
+        if (this.civitaiTagLogicRadios && this.civitaiTagLogicRadios.length > 0) {
+            this.civitaiTagLogicRadios.forEach(radio => {
+                radio.checked = radio.value === this.civitaiTagFilterLogic;
+            });
+        }
+        this.updateCivitaiTagFilterStatus();
+    }
+
+    updateCivitaiTagFilterStatus() {
+        if (!this.civitaiTagStatus) return;
+        const includeTags = Array.from(this.civitaiTagFilters);
+        const excludeTags = Array.from(this.civitaiExcludeTagFilters);
+        if (includeTags.length === 0 && excludeTags.length === 0) {
+            this.civitaiTagStatus.textContent = 'No Civitai tag filters active.';
+            return;
+        }
+        const includeLabel = includeTags.length > 0 ? `${this.civitaiTagFilterLogic.toUpperCase()} include: ${includeTags.join(', ')}` : '';
+        const excludeLabel = excludeTags.length > 0 ? `Exclude: ${excludeTags.join(', ')}` : '';
+        this.civitaiTagStatus.textContent = [includeLabel, excludeLabel].filter(Boolean).join(' | ');
+    }
+
+    saveCivitaiTagFilters({ triggerSearch = false } = {}) {
+        this.civitaiTagFilters = new Set(this.parseTagList(this.civitaiTagIncludeInput?.value || ''));
+        this.civitaiExcludeTagFilters = new Set(this.parseTagList(this.civitaiTagExcludeInput?.value || ''));
+        if (this.civitaiTagLogicRadios && this.civitaiTagLogicRadios.length > 0) {
+            const selected = Array.from(this.civitaiTagLogicRadios).find(radio => radio.checked);
+            this.civitaiTagFilterLogic = selected && selected.value === 'or' ? 'or' : 'and';
+        }
+        this.updateCivitaiTagFilterStatus();
+        this.savePersistentTagState();
+        if (triggerSearch && this.searchResultsContainer) {
+            this.handleSearchSubmit();
+        } else {
+            this.updateTagFilterControls();
+        }
+    }
+
+    clearCivitaiTagFilters({ triggerSearch = false } = {}) {
+        this.civitaiTagFilters.clear();
+        this.civitaiExcludeTagFilters.clear();
+        this.civitaiTagFilterLogic = 'and';
+        if (this.civitaiTagIncludeInput) this.civitaiTagIncludeInput.value = '';
+        if (this.civitaiTagExcludeInput) this.civitaiTagExcludeInput.value = '';
+        this.syncCivitaiTagFilterControls();
+        this.savePersistentTagState();
+        if (triggerSearch && this.searchResultsContainer) {
+            this.handleSearchSubmit();
         }
     }
 
@@ -435,6 +578,8 @@ export class CivitaiDownloaderUI {
         } catch (e) {
             console.warn('[Civicomfy] Failed to save custom tags:', e);
         }
+
+        this.savePersistentTagState();
     }
 
     getCustomTags(modelId) {
@@ -532,6 +677,27 @@ export class CivitaiDownloaderUI {
             if (visibleCount < desiredCount) this.scheduleFilterTopUp();
             else this.cancelFilterTopUp();
         }
+    }
+
+    matchesCivitaiTagFilters(hit) {
+        if (!hit) return false;
+        if (!this.hasCivitaiTagFilters()) return true;
+
+        const tags = Array.isArray(hit.tags) ? hit.tags.map(tag => {
+            if (typeof tag === 'string') return tag;
+            if (tag && typeof tag.name === 'string') return tag.name;
+            return '';
+        }).filter(Boolean) : [];
+        const lowerTags = tags.map(tag => tag.toLowerCase());
+        const includeTags = Array.from(this.civitaiTagFilters).map(tag => tag.toLowerCase());
+        const excludeTags = Array.from(this.civitaiExcludeTagFilters).map(tag => tag.toLowerCase());
+
+        if (excludeTags.some(tag => lowerTags.includes(tag))) return false;
+        if (includeTags.length === 0) return true;
+        if (this.civitaiTagFilterLogic === 'or') {
+            return includeTags.some(tag => lowerTags.includes(tag));
+        }
+        return includeTags.every(tag => lowerTags.includes(tag));
     }
 
     updateTagFilterControls() {
@@ -1026,6 +1192,28 @@ export class CivitaiDownloaderUI {
         } catch (e) {
             console.warn('[Civicomfy] Failed to persist tag filters:', e);
         }
+
+        this.savePersistentTagState();
+    }
+
+    shouldRenderSearchResult(hit) {
+        if (!hit) return false;
+        if (!this.matchesCivitaiTagFilters(hit)) return false;
+        if (!this.activeTagFilters || this.activeTagFilters.size === 0) return true;
+
+        const tags = Array.isArray(hit.tags) ? hit.tags.map(tag => {
+            if (typeof tag === 'string') return tag;
+            if (tag && typeof tag.name === 'string') return tag.name;
+            return '';
+        }).filter(Boolean) : [];
+        const lowerTags = tags.map(tag => tag.toLowerCase());
+        const activeFilters = Array.from(this.activeTagFilters).map(tag => tag.toLowerCase());
+
+        if (this.tagFilterLogic === 'or') {
+            return activeFilters.some(tag => lowerTags.includes(tag));
+        }
+
+        return activeFilters.every(tag => lowerTags.includes(tag));
     }
 
     isSelected(modelId) {
@@ -1096,7 +1284,7 @@ export class CivitaiDownloaderUI {
         }
         this.showToast(`Queued downloads for ${ids.length} model(s).`, 'success');
         // Optional: switch to Status
-        if (this.settings?.autoOpenStatus) this.switchTab('status');
+        if (this.settings?.autoOpenStatusTab) this.switchTab('status');
         // Keep selection or clear? Clear to avoid re-queueing accidentally
         this.clearSelection();
         this.updateStatus();
@@ -1141,11 +1329,14 @@ export class CivitaiDownloaderUI {
                 addIfExists('controlnet');
                 break;
             case 'unet': case 'unet2':
-                addIfExists('unet');
+                addIfExists('diffusion_models');
                 break;
-            case 'diffusers': case 'diffusionmodels': case 'diffusion_models': case 'diffusion':
-                // Normalize to the single 'diffusers' candidate to avoid duplicate listing
+            case 'diffusers':
                 addIfExists('diffusers');
+                break;
+            case 'diffusionmodels': case 'diffusion_models': case 'diffusion':
+                // Normalize to the single canonical diffusion storage folder.
+                addIfExists('diffusion_models');
                 break;
             case 'upscaler': case 'upscalers':
                 addIfExists('upscale_models');

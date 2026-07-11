@@ -141,4 +141,16 @@ export class CivitaiDownloaderAPI {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  static async getTagState() {
+    return await this._request("/civitai/tag_state");
+  }
+
+  static async saveTagState(state) {
+    return await this._request("/civitai/tag_state", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(state),
+    });
+  }
 }

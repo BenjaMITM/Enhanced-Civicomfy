@@ -5,7 +5,8 @@ import os
 from aiohttp import web
 import server # ComfyUI server instance
 import folder_paths
-from ...config import MODEL_TYPE_DIRS
+from ...config import MODEL_TYPE_DIRS, MODEL_TYPE_ALIASES
+from ...utils.helpers import normalize_model_type_key
 
 prompt_server = server.PromptServer.instance
 
@@ -36,10 +37,12 @@ async def route_get_model_types(request):
                 
                 for name in sorted(os.listdir(models_dir)):
                     p = os.path.join(models_dir, name)
+                    canonical_name = normalize_model_type_key(name)
                     # Only add if it's a directory, not already in our entries, and not a known folder type
                     if (os.path.isdir(p) and 
-                        name not in entries and 
-                        name not in known_folder_names):
+                        canonical_name not in entries and 
+                        name not in known_folder_names and
+                        canonical_name not in MODEL_TYPE_ALIASES):
                         # Add directories not in our config with their literal name
                         entries[name] = name.title()  # Capitalize for display
                         print(f"[GetModelTypes] Adding unconfigured directory: {name}")

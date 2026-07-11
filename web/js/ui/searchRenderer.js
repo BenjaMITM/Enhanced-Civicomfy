@@ -40,6 +40,8 @@ export function renderSearchResults(ui, items, options = {}) {
   const allCustomTags = ui.getAllCustomTags();
 
   items.forEach(hit => {
+    if (!ui.shouldRenderSearchResult(hit)) return;
+
     const modelId = hit.id;
     if (!modelId) return;
     const modelIdStr = String(modelId);

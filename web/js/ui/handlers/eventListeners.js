@@ -64,15 +64,49 @@ export function setupEventListeners(ui) {
 
     ui.searchForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        if (!ui.searchQueryInput.value.trim() && ui.searchTypeSelect.value === 'any' && ui.searchBaseModelSelect.value === 'any') {
+        const hasTagFilters = ui.hasCivitaiTagFilters ? ui.hasCivitaiTagFilters() : false;
+        if (!ui.searchQueryInput.value.trim() && ui.searchTypeSelect.value === 'any' && ui.searchBaseModelSelect.value === 'any' && !hasTagFilters) {
             ui.showToast("Please enter a search query or select a filter.", "error");
             if (ui.searchResultsContainer) ui.searchResultsContainer.innerHTML = '<p>Please enter a search query or select a filter.</p>';
             if (ui.searchPaginationContainer) ui.searchPaginationContainer.innerHTML = '';
             return;
         }
         ui.searchPagination.currentPage = 1;
+        if (ui.saveCivitaiTagFilters) ui.saveCivitaiTagFilters({ triggerSearch: false });
         ui.handleSearchSubmit();
     });
+
+    if (ui.civitaiTagApplyButton) {
+        ui.civitaiTagApplyButton.addEventListener('click', () => {
+            ui.saveCivitaiTagFilters({ triggerSearch: false });
+            ui.searchPagination.currentPage = 1;
+            ui.handleSearchSubmit();
+        });
+    }
+
+    if (ui.civitaiTagClearButton) {
+        ui.civitaiTagClearButton.addEventListener('click', () => {
+            ui.clearCivitaiTagFilters({ triggerSearch: true });
+        });
+    }
+
+    [ui.civitaiTagIncludeInput, ui.civitaiTagExcludeInput].forEach(input => {
+        if (!input) return;
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                ui.saveCivitaiTagFilters({ triggerSearch: false });
+                ui.searchPagination.currentPage = 1;
+                ui.handleSearchSubmit();
+            }
+        });
+    });
+
+    if (ui.civitaiTagLogicRadios && ui.civitaiTagLogicRadios.length > 0) {
+        ui.civitaiTagLogicRadios.forEach(radio => {
+            radio.addEventListener('change', () => ui.saveCivitaiTagFilters({ triggerSearch: false }));
+        });
+    }
 
     // Reset pagination when changing results per page
     if (ui.searchLimitSelect) {

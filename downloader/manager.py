@@ -786,9 +786,9 @@ class DownloadManager:
             if COMFY_PATHS_AVAILABLE:
                  # Check if the folder is within any known model type directory
                  known_types = [
-                     "checkpoints", "loras", "vae", "embeddings", "hypernetworks",
-                     "controlnet", "upscale_models", "clip_vision", "gligen", "configs",
-                     "unet", "diffusers", "motion_models", "poses", "wildcards"
+                     "checkpoints", "diffusers", "diffusion_models", "loras", "vae", "embeddings", "hypernetworks",
+                     "controlnet", "upscale_models", "clip", "clip_vision", "gligen", "configs",
+                     "unet", "motion_models", "poses", "wildcards"
                  ]
                  known_dirs = [os.path.abspath(get_directory_by_type(t)) for t in known_types if get_directory_by_type(t)]
                  # Also allow output and input directories

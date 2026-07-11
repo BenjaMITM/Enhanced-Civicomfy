@@ -87,6 +87,30 @@ export function modalTemplate(settings = {}) {
                 <option value="Newest">Newest</option>
               </select>
             </div>
+            <div id="civitai-civitai-tag-filter-panel" class="civitai-civitai-tag-filter-panel">
+              <div class="civitai-form-group">
+                <label for="civitai-civitai-tag-include">Include Civitai tags</label>
+                <input type="text" id="civitai-civitai-tag-include" class="civitai-input" placeholder="Comma-separated tags, e.g. flux, pony, realism">
+              </div>
+              <div class="civitai-form-group">
+                <label for="civitai-civitai-tag-exclude">Exclude Civitai tags</label>
+                <input type="text" id="civitai-civitai-tag-exclude" class="civitai-input" placeholder="Comma-separated tags to hide">
+              </div>
+              <div class="civitai-form-group inline civitai-tag-filter-logic-row">
+                <span style="margin-right: 8px;">Include match:</span>
+                <label>
+                  <input type="radio" name="civitai-civitai-tag-logic" value="and" checked>
+                  All tags
+                </label>
+                <label>
+                  <input type="radio" name="civitai-civitai-tag-logic" value="or">
+                  Any tag
+                </label>
+                <button type="button" id="civitai-civitai-tag-apply" class="civitai-button small">Apply tags</button>
+                <button type="button" id="civitai-civitai-tag-clear" class="civitai-button small secondary">Clear tags</button>
+              </div>
+              <div id="civitai-civitai-tag-status" class="civitai-tag-filter-status"></div>
+            </div>
             <button type="submit" id="civitai-search-submit" class="civitai-button primary">Search</button>
           </form>
           <div class="civitai-layout-controls">

@@ -11,7 +11,7 @@ import server # ComfyUI server instance
 from ..utils import get_request_json
 from ...downloader.manager import manager as download_manager
 from ...api.civitai import CivitaiAPI
-from ...utils.helpers import get_model_dir, parse_civitai_input, sanitize_filename, select_primary_file
+from ...utils.helpers import get_model_dir, parse_civitai_input, sanitize_filename, select_primary_file, infer_download_model_type
 from ...config import METADATA_SUFFIX, PREVIEW_SUFFIX
 
 prompt_server = server.PromptServer.instance
@@ -38,7 +38,6 @@ async def route_download_model(request):
         # Optional file selection overrides
         req_file_id = data.get("file_id")
         req_file_name_contains = data.get("file_name_contains", "").strip()
-        num_connections = int(data.get("num_connections", 4))
         force_redownload = bool(data.get("force_redownload", False))
         api_key = data.get("api_key", "") # Get API key from frontend settings
 
@@ -50,6 +49,12 @@ async def route_download_model(request):
         # Instantiate API with the key from the request (frontend settings)
         api = CivitaiAPI(api_key or None) # Pass None if empty string
         parsed_model_id, parsed_version_id = parse_civitai_input(model_url_or_id)
+
+        try:
+            num_connections = int(data.get("num_connections", 4))
+        except (TypeError, ValueError):
+            num_connections = 4
+        num_connections = max(1, num_connections)
 
         # Determine the target version ID (request param > URL param)
         target_version_id = None
@@ -222,6 +227,9 @@ async def route_download_model(request):
         download_url = primary_file.get("downloadUrl")
         print(f"[Server Download] Using Download URL: {download_url}")
 
+        storage_model_type = infer_download_model_type(model_type_value, model_info, version_info, primary_file)
+        print(f"[Server Download] Resolved storage type '{storage_model_type}' from requested type '{model_type_value}'.")
+
         # --- Determine Filename and Output Path ---
         api_filename = primary_file.get("name", f"model_{target_model_id}_ver_{target_version_id}_file_{file_id or 'unknown'}")
 
@@ -250,17 +258,17 @@ async def route_download_model(request):
             # Validate the explicit root belongs to known roots for this type (ComfyUI or plugin)
             try:
                 from ..routes.GetModelDirs import _get_all_roots_for_type
-                known_roots = _get_all_roots_for_type(model_type_value)
+                known_roots = _get_all_roots_for_type(storage_model_type)
                 if os.path.abspath(explicit_save_root) in [os.path.abspath(p) for p in known_roots]:
                     base_output_dir = explicit_save_root
                 else:
-                    print(f"[Server Download] Warning: Provided save_root not in known roots for type '{model_type_value}': {explicit_save_root}")
-                    base_output_dir = get_model_dir(model_type_value)
+                    print(f"[Server Download] Warning: Provided save_root not in known roots for type '{storage_model_type}': {explicit_save_root}")
+                    base_output_dir = get_model_dir(storage_model_type)
             except Exception as e:
                 print(f"[Server Download] Warning: Failed validating explicit save_root: {e}")
-                base_output_dir = get_model_dir(model_type_value)
+                base_output_dir = get_model_dir(storage_model_type)
         else:
-            base_output_dir = get_model_dir(model_type_value)
+            base_output_dir = get_model_dir(storage_model_type)
         output_dir = os.path.join(base_output_dir, sub_path) if sub_path else base_output_dir
         # Ensure directory exists (including subdirectories)
         try:
@@ -325,7 +333,12 @@ async def route_download_model(request):
              print(f"[Server Download] Force Re-download enabled. Will overwrite existing file: {output_path}")
 
         # --- Prepare Download Info and Queue ---
-        model_name = model_info.get('name', version_info['model']['name'])
+        model_name = (
+            model_info.get('name')
+            or version_info.get('model', {}).get('name')
+            or version_info.get('name')
+            or 'Unknown Model'
+        )
         version_name = version_info.get('name', 'Unknown Version')
 
         # Extract a suitable thumbnail URL (ensure it's done robustly) and nsfw level for it
@@ -414,7 +427,8 @@ async def route_download_model(request):
             "version_name": version_name,
             "thumbnail": thumbnail_url, # URL for UI thumbnail preview
             "thumbnail_nsfw_level": thumbnail_nsfw_level,
-            "model_type": model_type_value, # The category/directory key or literal folder used for saving
+            "model_type": storage_model_type, # The category/directory key used for saving
+            "requested_model_type": model_type_value,
             # Extra file attributes for UI lists
             "file_precision": ui_file_precision,
             "file_model_size": ui_file_model_size,

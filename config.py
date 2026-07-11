@@ -34,7 +34,8 @@ COMFYUI_ROOT_DIR = folder_paths.base_path
 # The folder_paths_type is used by ComfyUI's folder_paths.get_directory_by_type().
 MODEL_TYPE_DIRS = {
     "checkpoint": ("Checkpoint", "checkpoints"),
-    "diffusers": ("Diffusion Models", "diffusers"),
+    "diffusers": ("Diffusers", "diffusers"),
+    "diffusion_models": ("Diffusion Models", "diffusion_models"),
     "unet": ("Unet", "unet"),
     "lora": ("Lora", "loras"),
     "locon": ("LoCon", "loras"),
@@ -47,8 +48,48 @@ MODEL_TYPE_DIRS = {
     "motionmodule": ("Motion Module", "motion_models"),
     "poses": ("Poses", "poses"),
     "wildcards": ("Wildcards", "wildcards"),
+    "audio_encoders": ("Audio Encoders", "audio_encoders"),
+    "background_removal": ("Background Removal", "background_removal"),
+    "clip": ("CLIP", "clip"),
+    "clip_vision": ("CLIP Vision", "clip_vision"),
+    "configs": ("Configs", "configs"),
+    "detection": ("Detection", "detection"),
+    "frame_interpolation": ("Frame Interpolation", "frame_interpolation"),
+    "geometry_estimation": ("Geometry Estimation", "geometry_estimation"),
+    "gligen": ("GLIGEN", "gligen"),
+    "latent_upscale_models": ("Latent Upscale Models", "latent_upscale_models"),
+    "model_patches": ("Model Patches", "model_patches"),
+    "optical_flow": ("Optical Flow", "optical_flow"),
+    "photomaker": ("PhotoMaker", "photomaker"),
+    "style_models": ("Style Models", "style_models"),
+    "text_encoders": ("Text Encoders", "text_encoders"),
+    "upscale_models": ("Upscale Models", "upscale_models"),
+    "vae_approx": ("VAE Approx", "vae_approx"),
     # 'other' will save to a dedicated folder inside the Civicomfy extension directory
     "other": ("Other", None)
+}
+
+# Aliases that should be treated as the canonical model type key above.
+# This keeps the UI from showing duplicate options for the same storage root.
+MODEL_TYPE_ALIASES = {
+    "diffusion-models": "diffusion_models",
+    "diffusionmodels": "diffusion_models",
+}
+
+# Base models that are commonly distributed as diffusion-style folders rather than
+# a single checkpoint file. Used as a heuristic when Civitai labels the model as a checkpoint.
+DIFFUSION_LIKE_BASE_MODELS = {
+    "cogvideox",
+    "flux.1 d",
+    "flux.1 s",
+    "flux2",
+    "hunyuan 1",
+    "hunyuan video",
+    "ltxv",
+    "lumina",
+    "mochi",
+    "wan video",
+    "z-image",
 }
 
 # Civitai API specific type mapping (for search filters)
@@ -67,7 +108,8 @@ CIVITAI_API_TYPE_MAP = {
     "wildcards": "Wildcards",
     "upscaler": "Upscaler", 
     "unet": "UNET",
-    "diffusers": "Checkpoint", # No specific type, map to checkpoint
+    "diffusers": "Diffusers",
+    "diffusion_models": "UNET",
 }
 
 AVAILABLE_MEILI_BASE_MODELS = [

@@ -10,7 +10,106 @@ from typing import Optional, List, Dict, Any
 import folder_paths 
 
 # Import config values needed here
-from ..config import PLUGIN_ROOT, MODEL_TYPE_DIRS
+from ..config import PLUGIN_ROOT, MODEL_TYPE_DIRS, MODEL_TYPE_ALIASES, DIFFUSION_LIKE_BASE_MODELS
+
+
+def normalize_model_type_key(model_type: str) -> str:
+    """Normalize UI and filesystem aliases to a canonical model type key."""
+    model_type_raw = (model_type or "").strip().lower()
+    return MODEL_TYPE_ALIASES.get(model_type_raw, model_type_raw)
+
+
+def _text_blob(*parts: Any) -> str:
+    values = []
+    for part in parts:
+        if isinstance(part, dict):
+            values.extend(str(value) for value in part.values() if value is not None)
+        elif isinstance(part, (list, tuple, set)):
+            values.extend(str(value) for value in part if value is not None)
+        elif part is not None:
+            values.append(str(part))
+    return " ".join(values).lower()
+
+
+def _looks_like_checkpoint_bundle(model_info: Dict[str, Any], version_info: Dict[str, Any], primary_file: Dict[str, Any]) -> bool:
+    blob = _text_blob(
+        model_info.get("name"),
+        model_info.get("description"),
+        version_info.get("name"),
+        version_info.get("description"),
+        primary_file.get("name"),
+    )
+    bundle_markers = (
+        "aio",
+        "all in one",
+        "all-in-one",
+        "includes clip",
+        "clip/text_encoder",
+        "text_encoder and vae",
+        "text encoder and vae",
+        "clip and vae",
+    )
+    return any(marker in blob for marker in bundle_markers)
+
+
+def infer_download_model_type(
+    requested_type: Optional[str],
+    model_info: Optional[Dict[str, Any]] = None,
+    version_info: Optional[Dict[str, Any]] = None,
+    primary_file: Optional[Dict[str, Any]] = None,
+) -> str:
+    """Choose the storage model type for a download.
+
+    Diffusion-style models are stored in the diffusion_models root unless the model
+    clearly looks like a bundled checkpoint (AIO / clip+vae / text encoder + vae).
+    """
+    model_info = model_info or {}
+    version_info = version_info or {}
+    primary_file = primary_file or {}
+
+    requested_key = normalize_model_type_key(requested_type)
+
+    # Explicit non-storage categories keep their target folders.
+    if requested_key in {"lora", "locon", "lycoris", "vae", "embedding", "hypernetwork", "controlnet", "upscaler", "motionmodule", "poses", "wildcards", "other"}:
+        return requested_key
+
+    # Diffusion-style folders always land in the same storage root.
+    if requested_key == "diffusers":
+        return "diffusers"
+
+    if requested_key in {"diffusion_models", "unet"}:
+        return "diffusion_models"
+
+    base_model = (version_info.get("baseModel") or model_info.get("baseModel") or "").strip().lower()
+    model_name = (model_info.get("name") or "").lower()
+    version_name = (version_info.get("name") or "").lower()
+    file_name = (primary_file.get("name") or "").lower()
+    blob = " ".join([base_model, model_name, version_name, file_name])
+
+    diffusion_markers = (
+        "flux",
+        "diffusion",
+        "diffusion_models",
+        "unet",
+        "hunyuan video",
+        "wan video",
+        "ltxv",
+        "lumina",
+        "mochi",
+        "cogvideox",
+        "z-image",
+    )
+    is_diffusion_like = base_model in DIFFUSION_LIKE_BASE_MODELS or any(marker in blob for marker in diffusion_markers)
+
+    if requested_key == "checkpoint":
+        if is_diffusion_like and not _looks_like_checkpoint_bundle(model_info, version_info, primary_file):
+            return "diffusion_models"
+        return "checkpoint"
+
+    if requested_key in MODEL_TYPE_DIRS:
+        return requested_key
+
+    return requested_key or "checkpoint"
 
 def get_model_dir(model_type: str) -> str:
     """
@@ -19,7 +118,7 @@ def get_model_dir(model_type: str) -> str:
     Ensures the directory exists.
     """
     model_type_raw = (model_type or "").strip()
-    model_type_key = model_type_raw.lower()
+    model_type_key = normalize_model_type_key(model_type_raw)
 
     display_and_type = MODEL_TYPE_DIRS.get(model_type_key)
     folder_paths_type = None
@@ -53,6 +152,21 @@ def get_model_dir(model_type: str) -> str:
                     base = getattr(folder_paths, 'base_path', os.getcwd())
                     models_dir = os.path.join(base, 'models')
                 full_path = os.path.join(models_dir, folder_paths_type)
+
+        # Prefer the canonical diffusion_models directory for diffusion-style storage.
+        if model_type_key == "diffusion_models":
+            try:
+                models_dir = getattr(folder_paths, 'models_dir', None)
+                if not models_dir:
+                    base = getattr(folder_paths, 'base_path', os.getcwd())
+                    models_dir = os.path.join(base, 'models')
+
+                preferred_diffusion_dir = os.path.join(models_dir, 'diffusion_models')
+
+                if os.path.isdir(preferred_diffusion_dir) or not os.path.basename(str(full_path)).lower() == 'diffusion_models':
+                    full_path = preferred_diffusion_dir
+            except Exception:
+                pass
     else:
         # Treat model_type as a literal folder under the main models directory
         models_dir = getattr(folder_paths, 'models_dir', None)

@@ -128,7 +128,8 @@ class CivitaiAPI:
                             base_models: Optional[List[str]] = None,
                             sort: str = 'metrics.downloadCount:desc', # Default to Most Downloaded
                             limit: int = 20, page: int = 1,
-                            nsfw: Optional[bool] = None) -> Optional[Dict[str, Any]]:
+                            nsfw: Optional[bool] = None,
+                            additional_filters: Optional[List[Union[str, List[str]]]] = None) -> Optional[Dict[str, Any]]:
         """Searches models using the Civitai Meilisearch endpoint."""
         meili_url = "https://search.civitai.com/multi-search"
         headers = {'Content-Type': 'application/json'}
@@ -178,6 +179,11 @@ class CivitaiAPI:
              filter_groups.append("nsfwLevel IN [1, 2, 4]") # Filter applied directly as AND
              # Or maybe filter on the boolean `nsfw` field if it's indexed:
              # filter_groups.append("nsfw = false")
+
+        if additional_filters and isinstance(additional_filters, list):
+            for filter_group in additional_filters:
+                if isinstance(filter_group, (str, list)):
+                    filter_groups.append(filter_group)
 
         # Availability Filter (Public)
         filter_groups.append("availability = Public") # Filter applied directly as AND

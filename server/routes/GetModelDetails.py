@@ -10,6 +10,7 @@ import server # ComfyUI server instance
 from ..utils import get_request_json, get_civitai_model_and_version_details
 from ...api.civitai import CivitaiAPI
 from ...config import PLACEHOLDER_IMAGE_PATH
+from ...utils.helpers import infer_download_model_type
 
 prompt_server = server.PromptServer.instance
 
@@ -46,6 +47,8 @@ async def route_get_model_details(request):
         likes_count = stats.get('thumbsUpCount', 0)
         dislikes_count = stats.get('thumbsDownCount', 0)
         buzz_count = stats.get('tippedAmountCount', 0)
+
+        recommended_model_type = infer_download_model_type(model_info.get('type'), model_info, version_info, primary_file)
         
 
         # Get description from model_info (version description might be update notes)
@@ -151,6 +154,7 @@ async def route_get_model_details(request):
             "version_name": version_info.get('name', 'Unknown Version'),
             "creator_username": creator_username,
             "model_type": model_type,
+            "recommended_model_type": recommended_model_type,
             "description_html": description_html, # Send raw HTML (frontend should handle display safely)
             "version_description_html": version_description_html,
             "stats": {
